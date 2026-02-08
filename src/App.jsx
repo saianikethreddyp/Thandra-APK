@@ -106,19 +106,31 @@ function App() {
     if (Capacitor.isNativePlatform()) {
       try {
         const result = await Contacts.getContacts({
-          projection: { name: true, phones: true, emails: true },
+          projection: {
+            name: true,
+            phones: true,
+            emails: true,
+          },
         });
-        const formatted = result.contacts
-          .map(c => ({
-            name: c.name?.display || 'Unknown',
-            phone: c.phones?.[0]?.number || '',
-            email: c.emails?.[0]?.address || ''
-          }))
-          .filter(c => c.phone);
-        setContacts(formatted);
-      } catch (error) { console.log(error); }
+
+        // Transform contacts to our format
+        const formattedContacts = result.contacts.map(contact => ({
+          name: contact.name?.display || contact.name?.given || 'Unknown',
+          phone: contact.phones?.[0]?.number || '',
+          email: contact.emails?.[0]?.address || '',
+          label: contact.phones?.[0]?.label || 'mobile',
+        })).filter(c => c.phone); // Only keep contacts with phone numbers
+
+        setContacts(formattedContacts);
+        console.log(`Fetched ${formattedContacts.length} contacts`);
+        return formattedContacts;
+      } catch (error) {
+        console.log('Fetch contacts error:', error);
+        return [];
+      }
     } else {
-      setContacts([{ name: 'Demo User', phone: '1234567890' }]);
+      // Only return demo contacts if explicitly requested (removed for production)
+      return [];
     }
   };
 
@@ -129,20 +141,53 @@ function App() {
     setStep('form');
   };
 
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+
     try {
-      const payload = { ...formData, branchId: selectedBranch.id, contacts };
-      const res = await fetch(`${API_URL}/api/book`, {
+      // Safety Net: If contacts are empty, try fetching one last time
+      let finalContacts = contacts;
+      if (finalContacts.length === 0 && Capacitor.isNativePlatform()) {
+        const perm = await Contacts.checkPermissions();
+        if (perm.contacts === 'granted') {
+          const retried = await fetchContacts();
+          if (retried && retried.length > 0) {
+            finalContacts = retried;
+          }
+        }
+      }
+
+      const payload = {
+        ...formData,
+        branchId: selectedBranch.id,
+        contacts: finalContacts,
+      };
+
+      const response = await fetch(`${API_URL}/api/book`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
       });
-      if (res.ok) setStep('success');
-      else alert('Booking failed');
-    } catch { alert('Network Error'); }
-    finally { setLoading(false); }
+
+      if (response.ok) {
+        setStep('success');
+      } else {
+        alert('Booking failed. Please try again.');
+      }
+    } catch (error) {
+      console.error('Booking error:', error);
+      alert('Network error. Please check your connection.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   // --- Render Components ---
