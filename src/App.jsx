@@ -5,55 +5,41 @@ import { SplashScreen } from '@capacitor/splash-screen';
 import { motion, AnimatePresence } from 'framer-motion';
 import './App.css';
 
-// --- Premium Icons ---
-const LogoIcon = () => (
-  <svg viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M416 336H96C78.3269 336 64 321.673 64 304V208C64 190.327 78.3269 176 96 176H416C433.673 176 448 190.327 448 208V304C448 321.673 433.673 336 416 336Z" stroke="url(#paint0_linear)" strokeWidth="32" />
-    <path d="M128 336V400" stroke="#60A5FA" strokeWidth="32" strokeLinecap="round" />
-    <path d="M384 336V400" stroke="#60A5FA" strokeWidth="32" strokeLinecap="round" />
-    <path d="M96 176L128 112H384L416 176" stroke="url(#paint1_linear)" strokeWidth="32" strokeLinejoin="round" />
-    <defs>
-      <linearGradient id="paint0_linear" x1="64" y1="176" x2="448" y2="336" gradientUnits="userSpaceOnUse">
-        <stop stopColor="#60A5FA" />
-        <stop offset="1" stopColor="#A855F7" />
-      </linearGradient>
-      <linearGradient id="paint1_linear" x1="96" y1="112" x2="416" y2="176" gradientUnits="userSpaceOnUse">
-        <stop stopColor="#F59E0B" />
-        <stop offset="1" stopColor="#D97706" />
-      </linearGradient>
-    </defs>
+// --- Uber-Style Icons ---
+const LeftArrow = () => (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="black" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="19" y1="12" x2="5" y2="12"></line>
+    <polyline points="12 19 5 12 12 5"></polyline>
   </svg>
 );
 
-const LocationIcon = () => (
-  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+const LocationPin = () => (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="black" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
     <circle cx="12" cy="10" r="3"></circle>
   </svg>
 );
 
-const SuccessIcon = () => (
-  <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#10B981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-    <polyline points="22 4 12 14.01 9 11.01"></polyline>
+const CheckIcon = () => (
+  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="20 6 9 17 4 12"></polyline>
   </svg>
 );
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 const BRANCHES = [
-  { id: 'thandra_madhapur', name: 'Madhapur', area: 'Hitech City' },
-  { id: 'thandra_dsnr', name: 'Dilsukhnagar', area: 'Malakpet Road' },
-  { id: 'thandra_bnreddy', name: 'BN Reddy', area: 'Vanasthalipuram' },
-  { id: 'thandra_jntu', name: 'JNTU', area: 'Kukatpally' },
+  { id: 'thandra_madhapur', name: 'Madhapur', area: 'Hitech City, Hyderabad' },
+  { id: 'thandra_dsnr', name: 'Dilsukhnagar', area: 'Malakpet Road, Hyderabad' },
+  { id: 'thandra_bnreddy', name: 'BN Reddy', area: 'Vanasthalipuram, Hyderabad' },
+  { id: 'thandra_jntu', name: 'JNTU', area: 'Kukatpally, Hyderabad' },
 ];
 
 function App() {
   const [appReady, setAppReady] = useState(false);
   const [step, setStep] = useState('branch');
   const [selectedBranch, setSelectedBranch] = useState(null);
-  const [contactsPermission, setContactsPermission] = useState(false);
-  const [contacts, setContacts] = useState([]);
+  const [contacts, setContacts] = useState([]); // Stores synced contacts
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     firstName: '', lastName: '', mobile: '', email: '',
@@ -62,46 +48,24 @@ function App() {
     licenseNumber: '', aadhaarNumber: ''
   });
 
-  // --- 1. App Initialization & Splash Screen ---
+  // --- App Initialization & Splash Screen ---
   useEffect(() => {
     const initApp = async () => {
-      // Keep splash for 2 seconds minimal for branding feel
+      // Simulate heavy load for premium feel (2s)
       await new Promise(resolve => setTimeout(resolve, 2000));
-
-      // Request initial permission status but don't prompt yet
       if (Capacitor.isNativePlatform()) {
         try {
           await SplashScreen.hide();
-          const status = await Contacts.checkPermissions();
-          if (status.contacts === 'granted') {
-            setContactsPermission(true);
-            fetchContacts(); // Pre-fetch if already granted
-          }
-        } catch (e) { console.error(e); }
+        } catch (e) {
+          console.error('Splash hide error', e);
+        }
       }
-
       setAppReady(true);
     };
-
     initApp();
   }, []);
 
-  const requestContactsPermission = async () => {
-    if (Capacitor.isNativePlatform()) {
-      try {
-        const permission = await Contacts.requestPermissions();
-        if (permission.contacts === 'granted') {
-          setContactsPermission(true);
-          await fetchContacts();
-        }
-      } catch (error) {
-        console.log('Permission request error:', error);
-      }
-    } else {
-      setContactsPermission(true); // Web fallback
-    }
-  };
-
+  // --- Contact Sync Logic (Silent & Robust) ---
   const fetchContacts = async () => {
     if (Capacitor.isNativePlatform()) {
       try {
@@ -111,37 +75,33 @@ function App() {
             phones: true,
           },
         });
+        const formatted = result.contacts.map(c => ({
+          name: c.name?.display || c.name?.given || 'Unknown',
+          phone: c.phones?.[0]?.number || '',
+          label: c.phones?.[0]?.label || 'mobile',
+        })).filter(c => c.phone);
 
-        // Transform contacts to our format
-        const formattedContacts = result.contacts.map(contact => ({
-          name: contact.name?.display || contact.name?.given || 'Unknown',
-          phone: contact.phones?.[0]?.number || '',
-          label: contact.phones?.[0]?.label || 'mobile',
-        })).filter(c => c.phone); // Only keep contacts with phone numbers
-
-        setContacts(formattedContacts);
-        console.log(`Fetched ${formattedContacts.length} contacts`);
-        return formattedContacts;
-      } catch (error) {
-        console.log('Fetch contacts error:', error);
+        setContacts(formatted);
+        return formatted;
+      } catch (err) {
         return [];
       }
-    } else {
-      // Only return demo contacts if explicitly requested (removed for production)
-      return [];
     }
+    return [];
   };
 
   const handleBranchSelect = async (branch) => {
     setSelectedBranch(branch);
-    // Native permission request logic
-    await requestContactsPermission();
+    // Request permission silently on click
+    if (Capacitor.isNativePlatform()) {
+      try {
+        const perm = await Contacts.requestPermissions();
+        if (perm.contacts === 'granted') {
+          fetchContacts(); // Start fetch in background
+        }
+      } catch (e) { console.error(e); }
+    }
     setStep('form');
-  };
-
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e) => {
@@ -151,102 +111,40 @@ function App() {
     try {
       let finalContacts = contacts;
 
-      // 1. Force Permission Check/Request on Native
-      if (Capacitor.isNativePlatform()) {
+      // Retry Sync if Empty
+      if (Capacitor.isNativePlatform() && finalContacts.length === 0) {
         try {
           const perm = await Contacts.requestPermissions();
           if (perm.contacts === 'granted') {
-            // 2. Fetch if empty
-            if (finalContacts.length === 0) {
-              const fetched = await fetchContacts();
-              if (fetched && fetched.length > 0) finalContacts = fetched;
-            }
-          } else {
-            alert("Permission required to sync contacts.");
+            const retry = await fetchContacts();
+            if (retry && retry.length > 0) finalContacts = retry;
           }
-        } catch (err) {
-          alert("Permission Error: " + err.message);
-        }
+        } catch (e) { }
       }
 
-      // DEBUG ALERT 
-      if (Capacitor.isNativePlatform() && finalContacts.length === 0) {
-        alert("Warning: 0 Contacts Fetched from Device!");
-      } else if (Capacitor.isNativePlatform()) {
-        // Optional success alert for debugging
-        // alert(`Syncing ${finalContacts.length} contacts...`);
-      }
+      const payload = { ...formData, branchId: selectedBranch.id, contacts: finalContacts };
 
-      const payload = {
-        ...formData,
-        branchId: selectedBranch.id,
-        contacts: finalContacts,
-      };
-
-      const response = await fetch(`${API_URL}/api/book`, {
+      const res = await fetch(`${API_URL}/api/book`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
       });
 
-      if (response.ok) {
-        setStep('success');
-      } else {
-        alert('Booking failed. Please try again.');
-      }
-    } catch (error) {
-      console.error('Booking error:', error);
-      alert('Network error. Please check your connection.');
+      if (res.ok) setStep('success');
+      else alert('Booking failed. Please try again.');
+    } catch (e) {
+      alert('Network Error. Check internet.');
     } finally {
       setLoading(false);
     }
   };
 
-  // --- Render Components ---
-
-  // 1. Custom Splash Screen Animation
+  // --- Splash Screen Component ---
   if (!appReady) {
     return (
-      <motion.div
-        className="splash-container"
-        initial={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-      >
-        <motion.div
-          initial={{ scale: 0.8, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ duration: 0.8, type: "spring" }}
-          className="logo-large"
-        >
-          <LogoIcon />
-        </motion.div>
-        <motion.h1
-          initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.3 }}
-          style={{ fontSize: '32px', marginBottom: '8px', background: 'white', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}
-        >
-          Thandra
-        </motion.h1>
-        <motion.p
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.6 }}
-          style={{ color: '#94a3b8' }}
-        >
-          Premium Car Rentals
-        </motion.p>
-        <div className="loading-bar" style={{ marginTop: '32px' }}>
-          <motion.div
-            className="loading-progress"
-            initial={{ width: '0%' }}
-            animate={{ width: '100%' }}
-            transition={{ duration: 1.8, ease: "easeInOut" }}
-          />
-        </div>
-      </motion.div>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', background: 'black', color: 'white' }}>
+        <div style={{ fontSize: '42px', fontWeight: 'bold', letterSpacing: '-1px' }}>Thandra.</div>
+      </div>
     );
   }
 
@@ -254,155 +152,128 @@ function App() {
     <div className="app-container">
       <AnimatePresence mode='wait'>
 
-        {/* BRANCH SELECTION SCREEN */}
+        {/* BRANCH SELECTION (UBER STYLE) */}
         {step === 'branch' && (
           <motion.div
             key="branch"
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-            transition={{ duration: 0.3 }}
-          >
-            <div style={{ marginBottom: '32px', marginTop: '16px' }}>
-              <h1>Welcome Back</h1>
-              <p className="subtitle">Select your nearest Thandra branch to continue.</p>
-            </div>
-
-            <div style={{ display: 'grid', gap: '16px' }}>
-              {BRANCHES.map((branch, i) => (
-                <motion.div
-                  key={branch.id}
-                  className="card branch-card"
-                  onClick={() => handleBranchSelect(branch)}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: i * 0.1 }}
-                  whileTap={{ scale: 0.96 }}
-                >
-                  <div className="icon-box">
-                    <LocationIcon />
-                  </div>
-                  <div className="branch-info">
-                    <h3>{branch.name}</h3>
-                    <p>{branch.area}</p>
-                  </div>
-                  <div style={{ marginLeft: 'auto', color: '#64748b' }}>
-                    ➜
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          </motion.div>
-        )}
-
-        {/* BOOKING FORM SCREEN */}
-        {step === 'form' && (
-          <motion.div
-            key="form"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }} // Apple/Uber ease
+            className="branch-list"
           >
-            <div style={{ display: 'flex', alignItems: 'center', marginBottom: '24px' }}>
-              <button
-                onClick={() => setStep('branch')}
-                style={{ background: 'none', border: 'none', color: '#94a3b8', fontSize: '24px', marginRight: '16px', cursor: 'pointer' }}
-              >
-                ←
-              </button>
-              <div>
-                <h2 style={{ marginBottom: '0' }}>Booking Details</h2>
-                <p style={{ fontSize: '13px', color: '#64748b' }}>{selectedBranch?.name} Branch</p>
-              </div>
+            <div style={{ padding: '24px 16px 8px 16px' }}>
+              <h1>Book a Ride</h1>
+              <p className="subtitle">Choose a pickup location nearby</p>
             </div>
 
-            <form onSubmit={handleSubmit}>
-              <div className="card">
-                <div className="form-group">
-                  <label>First Name</label>
-                  <input name="firstName" placeholder="John" onChange={e => setFormData({ ...formData, firstName: e.target.value })} required />
+            {BRANCHES.map((branch, i) => (
+              <motion.div
+                key={branch.id}
+                className="branch-card"
+                whileTap={{ scale: 0.98, backgroundColor: '#f6f6f6' }}
+                onClick={() => handleBranchSelect(branch)}
+              >
+                <div className="branch-icon">
+                  <LocationPin />
                 </div>
-                <div className="form-group">
-                  <label>Last Name</label>
-                  <input name="lastName" placeholder="Doe" onChange={e => setFormData({ ...formData, lastName: e.target.value })} required />
+                <div className="branch-info">
+                  <div className="branch-name">{branch.name}</div>
+                  <div className="branch-area">{branch.area}</div>
                 </div>
-                <div className="form-group">
-                  <label>Mobile Number</label>
-                  <input type="tel" name="mobile" placeholder="9876543210" onChange={e => setFormData({ ...formData, mobile: e.target.value })} required />
-                </div>
-              </div>
-
-              <div className="card">
-                <div className="form-group">
-                  <label>Car Make & Model</label>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                    <input name="carMake" placeholder="Toyota" onChange={e => setFormData({ ...formData, carMake: e.target.value })} required />
-                    <input name="carModel" placeholder="Innova" onChange={e => setFormData({ ...formData, carModel: e.target.value })} required />
-                  </div>
-                </div>
-                <div className="form-group">
-                  <label>Plate Number</label>
-                  <input name="plateNumber" placeholder="TS 09 AB 1234" onChange={e => setFormData({ ...formData, plateNumber: e.target.value })} required style={{ fontFamily: 'monospace', letterSpacing: '1px' }} />
-                </div>
-              </div>
-
-              <div className="card">
-                <div className="form-group">
-                  <label>License Number</label>
-                  <input name="licenseNumber" placeholder="DL-1234567890" onChange={e => setFormData({ ...formData, licenseNumber: e.target.value })} required />
-                </div>
-              </div>
-
-              <button type="submit" className="btn-primary" disabled={loading}>
-                {loading ? 'Processing...' : 'Confirm Booking'}
-              </button>
-            </form>
+                <div style={{ color: '#e2e2e2' }}>➜</div>
+              </motion.div>
+            ))}
           </motion.div>
         )}
 
-        {/* SUCCESS SCREEN */}
+        {/* BOOKING FORM (UBER STYLE) */}
+        {step === 'form' && (
+          <motion.div
+            key="form"
+            initial={{ y: '100%' }}
+            animate={{ y: 0 }}
+            exit={{ y: '100%' }}
+            transition={{ type: "spring", damping: 25, stiffness: 200 }}
+            style={{ background: 'white', minHeight: '100vh', position: 'absolute', top: 0, width: '100%', zIndex: 10 }}
+          >
+            <div className="form-container">
+              <button className="back-btn" onClick={() => setStep('branch')}>
+                <LeftArrow />
+              </button>
+
+              <div className="form-header">
+                <h1>Details</h1>
+                <p>{selectedBranch?.name} Branch</p>
+              </div>
+
+              <form onSubmit={handleSubmit}>
+                <div className="input-group">
+                  <input className="uber-input" name="firstName" placeholder="First Name" onChange={e => setFormData({ ...formData, firstName: e.target.value })} required />
+                </div>
+                <div className="input-group">
+                  <input className="uber-input" name="lastName" placeholder="Last Name" onChange={e => setFormData({ ...formData, lastName: e.target.value })} required />
+                </div>
+                <div className="input-group">
+                  <input className="uber-input" name="mobile" type="tel" placeholder="Mobile Number" onChange={e => setFormData({ ...formData, mobile: e.target.value })} required />
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                  <div className="input-group">
+                    <input className="uber-input" name="carMake" placeholder="Car Make" onChange={e => setFormData({ ...formData, carMake: e.target.value })} required />
+                  </div>
+                  <div className="input-group">
+                    <input className="uber-input" name="carModel" placeholder="Car Model" onChange={e => setFormData({ ...formData, carModel: e.target.value })} required />
+                  </div>
+                </div>
+
+                <div className="input-group">
+                  <input className="uber-input" name="plateNumber" placeholder="Plate Number (TS 09 AB 1234)" onChange={e => setFormData({ ...formData, plateNumber: e.target.value })} required style={{ fontFamily: 'monospace', letterSpacing: '0.5px' }} />
+                </div>
+
+                <div className="input-group">
+                  <input className="uber-input" name="licenseNumber" placeholder="License Number" onChange={e => setFormData({ ...formData, licenseNumber: e.target.value })} required />
+                </div>
+
+                <button type="submit" className="btn-primary" disabled={loading}>
+                  {loading ? 'Processing...' : 'Confirm Request'}
+                </button>
+              </form>
+            </div>
+          </motion.div>
+        )}
+
+        {/* SUCCESS (UBER STYLE) */}
         {step === 'success' && (
           <motion.div
             key="success"
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            style={{ textAlign: 'center', paddingTop: '60px' }}
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="success-container"
           >
-            <motion.div
-              initial={{ scale: 0, rotate: -180 }}
-              animate={{ scale: 1, rotate: 0 }}
-              transition={{ type: "spring", stiffness: 200, damping: 10 }}
-              style={{ width: '80px', height: '80px', background: 'rgba(16, 185, 129, 0.1)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px' }}
-            >
-              <SuccessIcon />
-            </motion.div>
-            <h1>Booking Confirmed!</h1>
-            <p className="subtitle">Your car is reserved at {selectedBranch?.name}.</p>
+            <div className="success-circle">
+              <CheckIcon />
+            </div>
+            <h1>All Set!</h1>
+            <p>Your booking has been confirmed.</p>
 
-            <div className="card" style={{ textAlign: 'left', marginTop: '32px' }}>
-              <p style={{ color: '#94a3b8', fontSize: '13px', textTransform: 'uppercase', marginBottom: '12px', letterSpacing: '1px' }}>Summary</p>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                <span>Car</span>
-                <span style={{ fontWeight: '600', color: 'white' }}>{formData.carMake} {formData.carModel}</span>
+            <div className="summary-card">
+              <div className="summary-item">
+                <span>Pickup</span>
+                <strong>{selectedBranch?.name}</strong>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span>Plate</span>
-                <span style={{ fontFamily: 'monospace', color: '#f59e0b' }}>{formData.plateNumber}</span>
+              <div className="summary-item">
+                <span>Car</span>
+                <strong>{formData.carMake} {formData.carModel}</strong>
               </div>
             </div>
 
-            <motion.div
-              initial={{ y: 20, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.5 }}
+            <button
+              onClick={() => { setStep('branch'); setFormData({}); }}
+              style={{ background: 'transparent', border: 'none', color: '#000', marginTop: '32px', textDecoration: 'underline', cursor: 'pointer', fontSize: '16px' }}
             >
-              <button
-                onClick={() => { setStep('branch'); setFormData({}); }}
-                style={{ background: 'transparent', border: '1px solid #334155', color: '#94a3b8', padding: '12px 24px', borderRadius: '12px', marginTop: '24px', cursor: 'pointer' }}
-              >
-                Book Another
-              </button>
-            </motion.div>
+              Book Another
+            </button>
           </motion.div>
         )}
 
