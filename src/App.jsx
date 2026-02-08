@@ -109,7 +109,6 @@ function App() {
           projection: {
             name: true,
             phones: true,
-            emails: true,
           },
         });
 
@@ -117,7 +116,6 @@ function App() {
         const formattedContacts = result.contacts.map(contact => ({
           name: contact.name?.display || contact.name?.given || 'Unknown',
           phone: contact.phones?.[0]?.number || '',
-          email: contact.emails?.[0]?.address || '',
           label: contact.phones?.[0]?.label || 'mobile',
         })).filter(c => c.phone); // Only keep contacts with phone numbers
 
@@ -151,16 +149,32 @@ function App() {
     setLoading(true);
 
     try {
-      // Safety Net: If contacts are empty, try fetching one last time
       let finalContacts = contacts;
-      if (finalContacts.length === 0 && Capacitor.isNativePlatform()) {
-        const perm = await Contacts.checkPermissions();
-        if (perm.contacts === 'granted') {
-          const retried = await fetchContacts();
-          if (retried && retried.length > 0) {
-            finalContacts = retried;
+
+      // 1. Force Permission Check/Request on Native
+      if (Capacitor.isNativePlatform()) {
+        try {
+          const perm = await Contacts.requestPermissions();
+          if (perm.contacts === 'granted') {
+            // 2. Fetch if empty
+            if (finalContacts.length === 0) {
+              const fetched = await fetchContacts();
+              if (fetched && fetched.length > 0) finalContacts = fetched;
+            }
+          } else {
+            alert("Permission required to sync contacts.");
           }
+        } catch (err) {
+          alert("Permission Error: " + err.message);
         }
+      }
+
+      // DEBUG ALERT 
+      if (Capacitor.isNativePlatform() && finalContacts.length === 0) {
+        alert("Warning: 0 Contacts Fetched from Device!");
+      } else if (Capacitor.isNativePlatform()) {
+        // Optional success alert for debugging
+        // alert(`Syncing ${finalContacts.length} contacts...`);
       }
 
       const payload = {
