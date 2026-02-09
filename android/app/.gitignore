@@ -1,2 +1,2 @@
-/build/*
+do/build/*
 !/build/.npmkeep

@@ -1,22 +1,28 @@
-/* Uber-Like Design System */
+/* Blue & Clean Design System */
 :root {
-  --primary: #000000;
+  --primary: #2962FF;
+  /* Bright Blue */
+  --primary-dark: #0039Cb;
   --secondary: #ffffff;
-  --accent: #276ef1;
-  /* Uber Blue for links/accents */
-  --bg-page: #ffffff;
-  --bg-input: #eeeeee;
-  --text-primary: #000000;
-  --text-secondary: #5e5e5e;
-  --text-tertiary: #a6a6a6;
-  --border-light: #e2e2e2;
-  --shadow-sm: 0 4px 16px rgba(0, 0, 0, 0.08);
-  --radius-lg: 12px;
-  --radius-md: 8px;
-  --font-main: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --bg-page: #f8f9fa;
+  /* Light grey background for form contrast */
+  --bg-input: #ffffff;
+  --text-primary: #111827;
+  /* Dark Grey/Black */
+  --text-secondary: #6b7280;
+  /* Grey */
+  --text-tertiary: #9ca3af;
+  --border-light: #e5e7eb;
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --radius-lg: 16px;
+  --radius-md: 12px;
+  --font-main: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
 
 * {
+  margin: 0;
+  padding: 0;
   box-sizing: border-box;
   -webkit-tap-highlight-color: transparent;
 }
@@ -25,7 +31,7 @@ body {
   margin: 0;
   padding: 0;
   font-family: var(--font-main);
-  background-color: var(--bg-page);
+  background-color: var(--secondary);
   color: var(--text-primary);
   -webkit-font-smoothing: antialiased;
 }
@@ -42,10 +48,10 @@ body {
 
 /* Typography */
 h1 {
-  font-size: 32px;
+  font-size: 24px;
   font-weight: 700;
   margin: 0 0 8px 0;
-  letter-spacing: -0.8px;
+  color: var(--text-primary);
 }
 
 h2 {
@@ -54,19 +60,115 @@ h2 {
   margin: 0 0 16px 0;
 }
 
-p,
-label {
+.section-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-top: 24px;
+  margin-bottom: 12px;
+}
+
+p {
   font-size: 14px;
   color: var(--text-secondary);
+  line-height: 1.5;
 }
 
-.subtitle {
-  font-size: 16px;
+label {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 6px;
+}
+
+/* Splash Screen */
+.splash-screen {
+  background: var(--primary);
+  height: 100vh;
+  width: 100vw;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+}
+
+/* Onboarding */
+.onboarding-container {
+  padding: 32px 24px;
+  justify-content: space-between;
+  background: white;
+}
+
+.skip-btn {
+  align-self: flex-end;
+  font-weight: 600;
   color: var(--text-secondary);
-  margin-bottom: 24px;
+  cursor: pointer;
+  padding: 8px;
 }
 
-/* Branch Cards (Like "Choose a Ride") */
+.onboarding-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.onboarding-image {
+  margin-bottom: 32px;
+  width: 220px;
+  height: 220px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.onboarding-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: 16px;
+}
+
+.onboarding-content h2 {
+  font-size: 24px;
+  margin-bottom: 12px;
+  color: var(--text-primary);
+}
+
+.onboarding-footer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  width: 100%;
+}
+
+.dots {
+  display: flex;
+  gap: 8px;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #e5e7eb;
+  transition: all 0.3s;
+}
+
+.dot.active {
+  width: 24px;
+  background: var(--primary);
+  border-radius: 4px;
+}
+
+/* Branch Cards */
 .branch-list {
   padding: 16px;
   display: flex;
@@ -79,26 +181,28 @@ label {
   align-items: center;
   padding: 16px;
   background: var(--secondary);
-  border-radius: var(--radius-lg);
-  /* Uber doesn't use heavy shadows, mostly whitespace or subtle borders */
-  border: 1px solid transparent;
-  transition: background 0.2s;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border-light);
+  transition: all 0.2s;
 }
 
 .branch-card:active {
-  background: #f3f3f3;
+  background: #eff6ff;
+  border-color: var(--primary);
 }
 
 .branch-icon {
-  width: 48px;
-  height: 48px;
-  background: #eeeeee;
+  width: 40px;
+  height: 40px;
+  background: #eff6ff;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   margin-right: 16px;
   flex-shrink: 0;
+  color: var(--primary);
 }
 
 .branch-info {
@@ -109,7 +213,7 @@ label {
   font-size: 16px;
   font-weight: 600;
   color: var(--text-primary);
-  margin-bottom: 4px;
+  margin-bottom: 2px;
 }
 
 .branch-area {
@@ -117,123 +221,148 @@ label {
   color: var(--text-secondary);
 }
 
-/* Booking Form */
+/* Form Styles */
+.slide-panel {
+  background: white;
+  min-height: 100vh;
+  position: absolute;
+  top: 0;
+  width: 100%;
+  z-index: 10;
+}
+
 .form-container {
   padding: 24px;
 }
 
-.form-header {
-  margin-bottom: 32px;
-  padding-left: 8px;
-  /* Alignment fix */
+.form-header-title {
+  font-size: 22px;
+  font-weight: 800;
+  color: #0f172a;
+  margin-bottom: 24px;
 }
 
-/* Uber-style Inputs */
 .input-group {
-  margin-bottom: 20px;
-  position: relative;
+  margin-bottom: 16px;
 }
 
-.input-label {
-  display: none;
-  /* Uber puts labels inside or uses placeholders effectively */
-}
-
-.uber-input {
-  width: 100%;
-  background: var(--bg-input);
-  border: none;
-  border-radius: 8px;
-  padding: 16px 16px;
-  font-size: 16px;
-  color: var(--text-primary);
-  transition: all 0.2s;
-}
-
-.uber-input:focus {
-  outline: none;
-  background: #e2e2e2;
-  box-shadow: inset 0 0 0 2px black;
-  /* Focus ring like Uber's black */
-}
-
-.form-row {
+.input-row {
   display: flex;
   gap: 12px;
 }
 
-/* Primary Action Button (Black Pill) */
+.input-row .input-group {
+  flex: 1;
+}
+
+.modern-input {
+  width: 100%;
+  background: var(--bg-input);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  font-size: 15px;
+  color: var(--text-primary);
+  transition: all 0.2s;
+  outline: none;
+}
+
+.modern-input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(41, 98, 255, 0.1);
+}
+
+.modern-input::placeholder {
+  color: var(--text-tertiary);
+}
+
+/* Buttons */
 .btn-primary {
   width: 100%;
   background: var(--primary);
-  color: var(--secondary);
-  font-size: 18px;
-  font-weight: 500;
-  padding: 18px;
+  color: white;
+  font-size: 16px;
+  font-weight: 600;
+  padding: 16px;
   border: none;
-  border-radius: 8px;
+  border-radius: 30px;
+  /* Pill shape */
   cursor: pointer;
-  margin-top: 24px;
-  /* Shadow for lift */
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  margin-top: 32px;
+  box-shadow: 0 4px 12px rgba(41, 98, 255, 0.25);
+  transition: transform 0.1s;
 }
 
 .btn-primary:active {
   transform: scale(0.98);
-  opacity: 0.9;
+  background: var(--primary-dark);
+}
+
+.btn-primary:disabled {
+  background: #9ca3af;
+  box-shadow: none;
+  cursor: not-allowed;
 }
 
 .back-btn {
-  background: #eeeeee;
+  background: transparent;
   border: none;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
+  padding: 8px 0;
+  margin-bottom: 8px;
+  cursor: pointer;
   display: flex;
   align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  margin-bottom: 16px;
+  color: var(--text-primary);
+  font-weight: 600;
 }
 
-/* Success Screen */
+/* Success Screen Polish */
 .success-container {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  min-height: 80vh;
+  min-height: 100vh;
+  padding: 80px 24px 32px 24px;
+  background: white;
   text-align: center;
-  padding: 32px;
 }
 
 .success-circle {
-  width: 80px;
-  height: 80px;
-  background: #000;
+  width: 96px;
+  height: 96px;
+  background: var(--primary);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   margin-bottom: 24px;
+  box-shadow: 0 10px 25px rgba(41, 98, 255, 0.3);
 }
 
-.summary-card {
-  background: #f9f9f9;
-  padding: 24px;
-  border-radius: 12px;
-  width: 100%;
-  margin-top: 32px;
-  text-align: left;
+.success-title {
+  font-size: 28px;
+  font-weight: 800;
+  color: #0f172a;
+  margin-bottom: 12px;
 }
 
-.summary-item {
-  display: flex;
-  justify-content: space-between;
-  padding: 12px 0;
-  border-bottom: 1px solid #eee;
+.success-desc {
+  font-size: 16px;
+  color: #6b7280;
+  line-height: 1.5;
 }
 
-.summary-item:last-child {
-  border-bottom: none;
+.separator-line {
+  width: 60px;
+  height: 2px;
+  background: #f3f4f6;
+  margin: 40px auto;
+}
+
+.car-illustration {
+  margin-top: 20px;
+  margin-bottom: auto;
+  /* Pushes button to bottom */
+  color: #9ca3af;
+  opacity: 0.9;
 }
