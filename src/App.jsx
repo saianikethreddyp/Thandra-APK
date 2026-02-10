@@ -66,7 +66,10 @@ const ONBOARDING_STEPS = [
 
 function App() {
   const [loadingApp, setLoadingApp] = useState(true);
-  const [showOnboarding, setShowOnboarding] = useState(true);
+  const [showOnboarding, setShowOnboarding] = useState(() => {
+    // Check if user has already completed onboarding
+    return !localStorage.getItem('hasSeenOnboarding');
+  });
   const [onboardingStep, setOnboardingStep] = useState(0);
 
   const [step, setStep] = useState('branch');
@@ -74,7 +77,7 @@ function App() {
   const [contacts, setContacts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
-    firstName: '', lastName: '', mobile: '', email: '',
+    firstName: '', lastName: '', mobile: '',
     startDate: '', endDate: '',
     carMake: '', carModel: '', plateNumber: '',
     fuelType: 'Petrol', transmission: 'Manual',
@@ -106,11 +109,13 @@ function App() {
     if (onboardingStep < ONBOARDING_STEPS.length - 1) {
       setOnboardingStep(prev => prev + 1);
     } else {
+      localStorage.setItem('hasSeenOnboarding', 'true');
       setShowOnboarding(false);
     }
   };
 
   const handleSkipOnboarding = () => {
+    localStorage.setItem('hasSeenOnboarding', 'true');
     setShowOnboarding(false);
   };
 
@@ -292,10 +297,7 @@ function App() {
                   <input className="modern-input" name="mobile" type="tel" placeholder="+1 234 567 8900" onChange={e => setFormData({ ...formData, mobile: e.target.value })} required />
                 </div>
 
-                <div className="input-group">
-                  <label>Email Address</label>
-                  <input className="modern-input" name="email" type="email" placeholder="john@example.com" onChange={e => setFormData({ ...formData, email: e.target.value })} />
-                </div>
+
 
                 <div className="input-group">
                   <label>Driving License Number</label>
@@ -344,6 +346,31 @@ function App() {
                   <div className="input-group">
                     <label>Car Model</label>
                     <input className="modern-input" name="carModel" placeholder="Camry" onChange={e => setFormData({ ...formData, carModel: e.target.value })} required />
+                  </div>
+                </div>
+
+                <div className="input-row">
+                  <div className="input-group">
+                    <label>Plate Number</label>
+                    <input
+                      className="modern-input"
+                      name="plateNumber"
+                      placeholder="TS09AB1234"
+                      onChange={e => setFormData({ ...formData, plateNumber: e.target.value })}
+                      required
+                    />
+                  </div>
+                  <div className="input-group">
+                    <label>Transmission</label>
+                    <select
+                      className="modern-input"
+                      name="transmission"
+                      value={formData.transmission}
+                      onChange={e => setFormData({ ...formData, transmission: e.target.value })}
+                    >
+                      <option value="Manual">Manual</option>
+                      <option value="Automatic">Automatic</option>
+                    </select>
                   </div>
                 </div>
 
